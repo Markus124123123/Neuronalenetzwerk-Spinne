@@ -1,0 +1,20 @@
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import numpy as np
+import scipy as scipy
+import sklearn
+
+
+def z(theta, x, l):
+    if l == 1:
+        return np.matmul(theta[0], x) + theta[1]
+    elif l == 2:
+        return np.matmul(theta[2], a(theta, x, 1)) + theta[3]
+    else:
+        return np.matmul(theta[4], a(theta, x ,2)) + theta[5]
+
+
+def a(theta, x, l):
+    return sigma(z(theta,x,l))
+
+
