@@ -7,6 +7,21 @@ from scipy.stats import kappa3
 
 
 
+def z(theta, x, l):
+    if l == 1:
+        return np.matmul(theta[0], x) + theta[1]
+    elif l == 2:
+        return np.matmul(theta[2], a(theta, x, 1)) + theta[3]
+    else:
+        return np.matmul(theta[4], a(theta, x ,2)) + theta[5]
+
+
+def a(theta, x, l):
+    return sigma(z(theta,x,l))
+
+#Auswertung des neuronalen Netzes mit beliebigem theta
+def f(theta, x):
+    return sigma(np.matmul(theta[4], sigma(np.matmul(theta[2], sigma(np.matmul(theta[0],x) + theta[1]) + theta[3]) + theta[5])))
 
 
 #Berechnet den Gradient von f(theta, x) abgeleitet nach dem Baies b^(l)  
