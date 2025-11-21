@@ -18,3 +18,5 @@ def a(theta, x, l):
     return sigma(z(theta,x,l))
 
 
+def f(theta, x):
+    return sigma(np.matmul(theta[4], sigma(np.matmul(theta[2], sigma(np.matmul(theta[0],x) + theta[1]) + theta[3]) + theta[5])))
