@@ -5,7 +5,7 @@ import scipy as scipy
 from scipy.special import obl_rad2
 from scipy.stats import kappa3
 
-#Berechnet den Gradient von f(theta, x) abgeleitet nach dem Baies b^(l)  
+#Berechnet den Gradient von f(theta, x) abgeleitet nach dem Baies b^(l)
 def gradb(l, theta, x, gradTf):
     z = z(theta, x, l)
     W = theta[l + 1].T
@@ -16,12 +16,12 @@ def gradb(l, theta, x, gradTf):
 def gradW(l, theta, x, gradTf):
     b = gradTf[l]
     a = a(theta, x, l).T
-    return np.matmul(b, a) 
+    return np.matmul(b, a)
 
 #Berechnet den Gradient von f(theta, x) abgeleitet nach theta
-def gradTf(theta):
+def gradTf(theta, x, l):
     o = np.asarray([]) #ist ein Platzhalter damit beim hinzufuegen die Indizes sich nicht verschieben
-    L = [o, o, o, o, a(theta, x, l).T, np.asarray([1, 1, 1])] 
+    L = [o, o, o, o, a(theta, x, l).T, np.asarray([1, 1, 1])]
     L[3] = gradb(2, theta, x, L)
     L[2] = gradW(2, theta, x, L)
     L[1] = gradb(1, theta, x, L)
