@@ -1,0 +1,17 @@
+import numpy as np
+#import sklearn as sk
+#import matplotlib.pyplot as plt
+#import matplotlip.image as mping
+#import scipy as scipy
+
+def softmax(X):
+    L = np.empty((len(X),1))
+    for i in range(len(X)):
+        if X[i][0] < 0:
+            L[i][0] = 0
+        else:
+            L[i][0] = X[i][0]
+    return L
+
+
+
