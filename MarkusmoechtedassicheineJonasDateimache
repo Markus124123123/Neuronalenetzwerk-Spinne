@@ -4,7 +4,7 @@ import numpy as np
 import scipy as scipy
 import sklearn
 
-
+#z
 def z(theta, x, l):
     if l == 1:
         return np.matmul(theta[0], x) + theta[1]
@@ -13,10 +13,10 @@ def z(theta, x, l):
     else:
         return np.matmul(theta[4], a(theta, x ,2)) + theta[5]
 
-
+#a
 def a(theta, x, l):
     return sigma(z(theta,x,l))
 
-
+#f
 def f(theta, x):
     return sigma(np.matmul(theta[4], sigma(np.matmul(theta[2], sigma(np.matmul(theta[0],x) + theta[1]) + theta[3]) + theta[5])))
