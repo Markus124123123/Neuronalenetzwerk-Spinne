@@ -38,7 +38,7 @@ def gradW(l, theta, x, gradTf):
     return np.matmul(b, a) 
 
 #Berechnet den Gradient von f(theta, x) abgeleitet nach theta
-def gradTf(theta):
+def gradTf(theta, x, l):
     o = np.asarray([]) #ist ein Platzhalter damit beim hinzufuegen die Indizes sich nicht verschieben
     L = [o, o, o, o, a(theta, x, l).T, np.asarray([1, 1, 1])] 
     L[3] = gradb(2, theta, x, L)
