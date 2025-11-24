@@ -19,11 +19,48 @@ def gradW(l, theta, x, gradTf):
     return np.matmul(b, a)
 
 #Berechnet den Gradient von f(theta, x) abgeleitet nach theta
-def gradTf(theta, x, l):
+def gradTf(theta, x):
     o = np.asarray([]) #ist ein Platzhalter damit beim hinzufuegen die Indizes sich nicht verschieben
-    L = [o, o, o, o, a(theta, x, l).T, np.asarray([[1], [1], [1]])]
+    L = [o, o, o, o, a(theta, x, 3).T, np.asarray([[1], [1], [1]])]
     L[3] = gradb(2, theta, x, L)
     L[2] = gradW(2, theta, x, L)
     L[1] = gradb(1, theta, x, L)
     L[0] = gradW(1, theta, x, L)
     return L
+
+#Ableitung wenn l gleich die Eukliedischen-Norm ist
+def gradl1(theta, x, y):
+    f = f(theta, x)
+    return [[2*(f[0][0] - y[0][0])], [2*(f[1][0] - y[1][0])], [2*(f[2][0] - y[2][0])]]
+
+#Berechnet die ableitung wenn l gleich der empirische log-Entropie Funktion ist
+def gradl2(theta, x, y):
+    f = f(theta, x)
+    #Berechne zuerst die einzelnen Komponenten
+    a = l(1, f, y)
+    b = l(2, f, y)
+    c = l(3, f, y)
+    #Dann zusammen in einen Vektor schreiben
+    return [[a], [b], [c]]
+
+#berechnet Softmax
+def softmax(i, f):
+    #Berechnung der beiden Summen durch die man teilen muss
+    a = 0
+    b = 0
+    np.exp(f[i][0])
+    for k in range(3):
+        b += np.exp(f[k][0])
+    #Berechnet dann das Gesammte
+    return a/b
+
+def gradLoss(theta, MNIST):
+    N = len(MNIST) #falls da len funktioneirt
+    e = 0 #Das Ergebnis
+    for i in range(N+1): #i guess N+1 keine ahnung ob das richtig ist
+        l = np.dot(gradl1(theta, MNIST[i][2], MNIST[i][0]), gradTF(theta, MNIST[i][2]))
+        #kp wie dass mit dem MNIST ist man muss habe jetzt x = MNIST[i][2] und y = MNIST[i][0] aber man muss ja noch one hot dings schreiben fuer y
+        e += l
+    return e
+
+
