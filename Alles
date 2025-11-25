@@ -28,6 +28,16 @@ def d_softplus(X):
                 L[i][j] = sigmoid(X[i][j])
     return L
 
+def d_sigmoid(X):
+    L = np.empty((len(X), len(X)))
+    for i in range(len(X)):
+        for j in range(len(X)):
+            if i == j:
+                L[i][j] = 0
+            else:
+                L[i][j] = -(np.exp(X[i][j]))/(1+np.exp(X[i][j]))**2
+    return L
+
 def z(theta, x, l, sigma):
     if l == 1:
         return np.matmul(theta[0], x) + theta[1]
@@ -121,3 +131,5 @@ def graddiscent(theta, MNIST, a, i, sigma, D_sigma):
     for j in range(i+1):
         theta = theta - a*gradLoss(theta, MNIST, sigma, D_sigma)
     return theta
+
+
