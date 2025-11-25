@@ -10,12 +10,24 @@ def softplus(X):
         L[i][0] = np.log(1+np.exp(X[i][0]))
     return L
 
-def sigmoid(X):
-    L = np.empty((len(X),1))
+def d_softplus(X):
+    L = np.empty((len(X), len(X)))
     for i in range(len(X)):
-        L[i][0] = 1/(1+np.exp(-X[i][0]))
+        for j in range(len(X)):
+            if i == j:
+                L[i][j] = 0
+            else:
+                L[i][j] = sigmoid(X[i][j])
     return L
 
+def sigmoid(X):
+    if type(X) != np.ndarray:
+        return 1/(1+np.exp(-X))
+    else:
+        L = np.empty((len(X),1))
+        for i in range(len(X)):
+            L[i][0] = 1/(1+np.exp(-X[i][0]))
+        return L
 
 
 
