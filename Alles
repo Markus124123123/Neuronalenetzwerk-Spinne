@@ -2,10 +2,18 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 import scipy as scipy
-from scipy.special import obl_rad2
-from scipy.stats import kappa3
 
+def softplus(X):
+    L = np.empty((len(X), 1))
+    for i in range(len(X)):
+        L[i][0] = np.log(1+np.exp(X[i][0]))
+    return L
 
+def sigmoid(X):
+    L = np.empty((len(X),1))
+    for i in range(len(X)):
+        L[i][0] = 1/(1+np.exp(-X[i][0]))
+    return L
 
 def z(theta, x, l):
     if l == 1:
@@ -23,8 +31,7 @@ def a(theta, x, l):
 def f(theta, x):
     return sigma(np.matmul(theta[4], sigma(np.matmul(theta[2], sigma(np.matmul(theta[0],x) + theta[1]) + theta[3]) + theta[5])))
 
-
-#Berechnet den Gradient von f(theta, x) abgeleitet nach dem Baies b^(l)  
+#Berechnet den Gradient von f(theta, x) abgeleitet nach dem Baies b^(l)
 def gradb(l, theta, x, gradTf):
     z = z(theta, x, l)
     W = theta[l + 1].T
@@ -35,14 +42,57 @@ def gradb(l, theta, x, gradTf):
 def gradW(l, theta, x, gradTf):
     b = gradTf[l]
     a = a(theta, x, l).T
-    return np.matmul(b, a) 
+    return np.matmul(b, a)
 
 #Berechnet den Gradient von f(theta, x) abgeleitet nach theta
-def gradTf(theta, x, l):
+def gradTf(theta, x):
     o = np.asarray([]) #ist ein Platzhalter damit beim hinzufuegen die Indizes sich nicht verschieben
-    L = [o, o, o, o, a(theta, x, l).T, np.asarray([[1], [1], [1]])] 
+    L = [o, o, o, o, a(theta, x, 3).T, np.asarray([[1], [1], [1]])]
     L[3] = gradb(2, theta, x, L)
     L[2] = gradW(2, theta, x, L)
     L[1] = gradb(1, theta, x, L)
     L[0] = gradW(1, theta, x, L)
     return L
+
+#Ableitung wenn l gleich die Eukliedischen-Norm ist
+def gradl1(theta, x, y):
+    f = f(theta, x)
+    return [[2*(f[0][0] - y[0][0])], [2*(f[1][0] - y[1][0])], [2*(f[2][0] - y[2][0])]]
+
+#Berechnet die ableitung wenn l gleich der empirische log-Entropie Funktion ist
+def gradl2(theta, x, y):
+    f = f(theta, x)
+    #Berechne zuerst die einzelnen Komponenten
+    a = softmax(1, f)
+    b = softmax(2, f)
+    c = softmax(3, f)
+    #Dann zusammen in einen Vektor schreiben und das mit dem y
+    return [[-y[0][0] + a], [-y[1][0] + b], [-y[2][0] + c]]
+
+#berechnet Softmax
+def softmax(i, f):
+
+    a = np.exp(f[i][0])
+    b = 0
+
+    for k in range(3):
+        b += np.exp(f[k][0])
+
+    return a/b
+
+#Berechnet den Gradienten der Loss Funktion nach Theta abgeleitet
+def gradLoss(theta, MNIST):
+    N = len(MNIST) #falls da len funktioneirt
+    e = 0 #Das Ergebnis
+    for i in range(N+1): #i guess N+1 keine ahnung ob das richtig ist
+        l = np.dot(gradl1(theta, MNIST[i][2], MNIST[i][0]), gradTF(theta, MNIST[i][2]))
+        #kp wie dass mit dem MNIST ist man muss habe jetzt x = MNIST[i][2] und y = MNIST[i][0] aber man muss ja noch one hot dings schreiben fuer y
+        e += l
+    return e
+
+#fuehrt das Gradienten Absteigsverfahren fuer eine Schrittweite a und i Iterationen aus
+def graddiscent(theta, MNIST, a, i):
+    for j in range(i+1):
+        theta = theta - a*gradLoss(theta, MNIST)
+    return theta
+
