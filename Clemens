@@ -29,6 +29,16 @@ def sigmoid(X):
             L[i][0] = 1/(1+np.exp(-X[i][0]))
         return L
 
+def d_sigmoid(X):
+    L = np.empty((len(X), len(X)))
+    for i in range(len(X)):
+        for j in range(len(X)):
+            if i == j:
+                L[i][j] = 0
+            else:
+                L[i][j] = -(np.exp(X[i][j]))/(1+np.exp(X[i][j]))**2
+    return L
+
 def l1(S,Y):
     N = 0
     for i in range(len(S)):
