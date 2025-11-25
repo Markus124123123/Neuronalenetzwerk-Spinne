@@ -35,4 +35,10 @@ def l1(S,Y):
         N += (S[i][0]-Y[i][0])**2
     return N
 
+def l2(S,Y):
+    N = 0
+    for i in range(len(S)):
+        N += Y[i][0] * np.log(softmax(i,S))
+    return -N
+
 
