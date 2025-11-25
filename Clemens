@@ -29,5 +29,10 @@ def sigmoid(X):
             L[i][0] = 1/(1+np.exp(-X[i][0]))
         return L
 
+def l1(S,Y):
+    N = 0
+    for i in range(len(S)):
+        N += (S[i][0]-Y[i][0])**2
+    return N
 
 
