@@ -1,0 +1,37 @@
+import numpy as np
+import sklearn as sk
+from sklearn.datasets import load_digits
+import matplotlib.pyplot as plt
+import scipy as scipy
+
+digits = load_digits()
+target = load_digits().target
+
+mask = [] #hier wird die maske definiert
+for i in range(len(digits.target)):
+    if digits.target[i] == 1:
+        mask.append(i)
+    elif digits.target[i] == 5:
+        mask.append(i)
+    elif digits.target[i] == 7:
+        mask.append(i)
+#print(mask)
+
+def one_hot(data):
+    if type(data) == np.ndarray:
+        for i in range(len(digits.images)):
+            if (digits.images[i]==data).all():
+                return one_hot(i)
+    else:
+        if data == 1:
+            return np.array([[1],[0],[0]])
+        elif data == 5:
+            return np.array([[0],[1],[0]])
+        elif data == 7:
+            return np.array([[0],[0],[1]])
+
+#Hiermit kann man sich eine Ziffer darstellen lassen: (Index i)
+print(digits.target[i])
+print(digits.images[i])
+plt.matshow(digits.images[i], cmap="grey")
+plt.show()
