@@ -4,6 +4,31 @@ import numpy as np
 import scipy as scipy
 import sklearn as sk
 
+digits = load_digits()
+
+#Maske für unseren Datensatz
+mask = [] #hier wird die maske definiert
+for i in range(len(digits.target)):
+    if digits.target[i] == 1:
+        mask.append(i)
+    elif digits.target[i] == 5:
+        mask.append(i)
+    elif digits.target[i] == 7:
+        mask.append(i)
+
+#One-Hot-Funktion
+def one_hot(data):
+    if type(data) == np.ndarray:
+        for i in range(len(digits.images)):
+            if (digits.images[i]==data).all():
+                return one_hot(i)
+    else:
+        if data == 1:
+            return np.array([[1],[0],[0]])
+        elif data == 5:
+            return np.array([[0],[1],[0]])
+        elif data == 7:
+            return np.array([[0],[0],[1]])
 
 #Definition der Sigma Funktionen
 def softplus(X):
@@ -11,7 +36,6 @@ def softplus(X):
     for i in range(len(X)):
         L[i][0] = np.log(1+np.exp(X[i][0]))
     return L
-
 
 def sigmoid(X):
     L = np.empty((len(X),1))
@@ -147,11 +171,12 @@ def softmax(i, f):
 
 
 #Berechnet den Gradienten der Loss Funktion nach Theta abgeleitet
-def gradLoss(theta, MNIST, sigma, D_sigma, ell):
-    N = len(MNIST) #falls da len funktioneirt
+
+def gradLoss(theta, sigma, D_sigma, ell):
+    #N = len(mask) #falls da len funktioneirt
     e = 0 #Das Ergebnis
-    for i in range(N+1): #i guess N+1 keine ahnung ob das richtig ist
-        l = np.dot(ell(theta, MNIST[i][2], MNIST[i][0], sigma), gradTf(theta, MNIST[i][2], sigma, D_sigma, ell))
+    for i in mask: #i guess N+1 keine ahnung ob das richtig ist
+        l = np.dot(ell(theta, digits.images[i], digits.target[i], sigma), gradTf(theta, digits.images[i], sigma, D_sigma, ell))
         #kp wie dass mit dem MNIST ist man muss habe jetzt x = MNIST[i][2] und y = MNIST[i][0] aber man muss ja noch one hot dings schreiben fuer y
         e += l
     return e
