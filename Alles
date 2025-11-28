@@ -31,21 +31,22 @@ def one_hot(data):
         elif data == 7:
             return np.array([[0],[0],[1]])
 
-#Definition der Sigma Funktionen
+# Definition der Sigma Funktionen
 def softplus(X):
     L = np.empty((len(X), 1))
     for i in range(len(X)):
-        L[i][0] = np.log(1+np.exp(X[i][0]))
+        L[i][0] = np.log(1 + np.exp(X[i][0]))
     return L
+
 
 def sigmoid(X):
-    L = np.empty((len(X),1))
+    L = np.empty((len(X), 1))
     for i in range(len(X)):
-        L[i][0] = 1/(1+np.exp(-X[i][0]))
+        L[i][0] = 1 / (1 + np.exp(-X[i][0]))
     return L
 
 
-#Ableitungen der Sigma Funktionen
+# Ableitungen der Sigma Funktionen
 def d_softplus(X):
     L = np.empty((len(X), len(X)))
     for i in range(len(X)):
@@ -64,130 +65,146 @@ def d_sigmoid(X):
             if i == j:
                 L[i][j] = 0
             else:
-                L[i][j] = -(np.exp(X[i][j]))/(1+np.exp(X[i][j]))**2
+                L[i][j] = -(np.exp(X[i][j])) / (1 + np.exp(X[i][j])) ** 2
     return L
 
-def z(theta, x, l, sigma):
+
+def zt(theta, x, l, sigma):
     if l == 1:
         return np.matmul(theta[0], x) + theta[1]
     elif l == 2:
-        return np.matmul(theta[2], a(theta, x, 1, sigma)) + theta[3]
+        return np.matmul(theta[2], at(theta, x, 1, sigma)) + theta[3]
     else:
-        return np.matmul(theta[4], a(theta, x ,2, sigma)) + theta[5]
+        return np.matmul(theta[4], at(theta, x, 2, sigma)) + theta[5]
 
 
-def a(theta, x, l, sigma):
-    return sigma(z(theta,x,l, sigma))
+def at(theta, x, l, sigma):
+    return functionDecider(sigma, zt(theta, x, l, sigma))
+
+def functionDecider(func, X,):
+    if func == "sp":
+        return softplus(X)
+    if func == "Dsp":
+        return d_softplus(X)
+    if func == "sm":
+        return sigmoid(X)
+    if func == "Dsm":
+        return d_sigmoid(X)
 
 
-#Auswertung des neuronalen Netzes mit beliebigem theta
-def f(theta, x, sigma):
-    return sigma(np.matmul(theta[4], sigma(np.matmul(theta[2], sigma(np.matmul(theta[0],x) + theta[1]) + theta[3]) + theta[5])))
+# Auswertung des neuronalen Netzes mit beliebigem theta
+def forward(theta, x, sigma):
+    return functionDecider(sigma, np.matmul(theta[4], functionDecider(sigma, np.matmul(theta[2], functionDecider(sigma, np.matmul(theta[0], x) + theta[1]) + theta[3]) + theta[5])))
 
 
-#Definitionen der beiden l funktionen
-def l1(S,Y):
+# Definitionen der beiden l funktionen
+def l1(S, Y):
     N = 0
     for i in range(len(S)):
-        N += (S[i][0]-Y[i][0])**2
+        N += (S[i][0] - Y[i][0]) ** 2
     return N
 
-def l2(S,Y):
+
+def l2(S, Y):
     N = 0
     for i in range(len(S)):
-        N += Y[i][0] * np.log(softmax(i,S))
+        N += Y[i][0] * np.log(softmax(i, S))
     return -N
 
 
-#Berechnet den Gradient von f(theta, x) abgeleitet nach dem Baies b^(l)
-def gradb(l, theta, x, gradTf, sigma, D_sigma):
-    #diag(D_sigma(z)) * W^T * b preparen
-    z = z(theta, x, l, sigma)
-    z = D_sigma(z).T#transponieren, damit man dann als Liste zugreifen kann
+# Berechnet den Gradient von f(theta, x) abgeleitet nach dem Baies b^(l)
+def gradb(l, theta, x, gradTf, sigma):
+    # diag(D_sigma(z)) * W^T * b preparen
+    z = zt(theta, x, l, sigma)
+    z = functionDecider(sigma, z).T  # transponieren, damit man dann als Liste zugreifen kann
     z = np.diag(z[0])
 
     # Mit den indizes gucken
-    W = theta[2*l].T
-    b = gradTf[2*l + 1]
-    
-    return np.matmul(z, np.matmul(W, b)) #multipliziert diag(D_sigma(z)) * W^T * b
+    W = theta[2 * l].T
+    b = gradTf[2 * l + 1]
+
+    return np.matmul(z, np.matmul(W, b))  # multipliziert diag(D_sigma(z)) * W^T * b
 
 
-#Berechnet den Gradienten von l(f(theta, x), y) abgeleitet nach der Weight matrix W^(l)
-def gradW(l, theta, x, gradTf, sigma):
-    b = gradTf[l]
-    b = np.matmul(gradl1, b) #Damit dass zu ell wird
-    a = a(theta, x, l, sigma).T
+# Berechnet den Gradienten von l(f(theta, x), y) abgeleitet nach der Weight matrix W^(l)
+def gradW(l, theta, x, y, gradTf, sigma, ell):
+    b = gradTf[2*l-1]
+    b = np.matmul(ellDecider(ell, theta, x, y, sigma), b)  # Damit dass zu ell wird
+    a = at(theta, x, l-1, sigma).T
     return np.matmul(b, a)
 
 
-#Berechnet den Gradient von l(f(theta, x), y) abgeleitet nach theta
-def gradTf(theta, x, sigma, D_sigma, ell):
-    o = np.asarray([]) #ist ein Platzhalter damit beim hinzufuegen die Indizes sich nicht verschieben
-    
-    w3 = np.matmul(ell, a(theta, x, 2, sigma).T) #Schon zur komponente von grad theta l
+# Berechnet den Gradient von l(f(theta, x), y) abgeleitet nach theta. ell ist der Gradient von l
+def gradTf(theta, x, y, sigma, ell):
+    o = np.asarray([])  # ist ein Platzhalter damit beim hinzufuegen die Indizes sich nicht verschieben
+
+    w3 = np.matmul(ellDecider(ell, theta, x, y, sigma), at(theta, x, 2, sigma).T)  # Schon zur komponente von grad theta l
     b3 = np.eye(3, 3)
-    
+
     L = [o, o, o, o, w3, b3]
-    L[3] = gradb(2, theta, x, L, sigma, D_sigma)
-    L[2] = gradW(2, theta, x, L, sigma)
-    L[1] = gradb(1, theta, x, L, sigma, D_sigma)
-    L[0] = gradW(1, theta, x, L, sigma)
-    
-    #Haben dass davor nicht gemacht, weil wir das ja bei dem b ohne das bruachen
-    L[1] = np.matmul(ell, L[1])
-    L[3] = np.matmul(ell, L[3])
-    L[5] = np.matmul(ell, L[5])
-    
+    L[3] = gradb(2, theta, x, L, sigma)
+    L[2] = gradW(2, theta, x, y, L, sigma, ell)
+    L[1] = gradb(1, theta, x, L, sigma)
+    L[0] = gradW(1, theta, x, y, L, sigma, ell)
+
+    # Haben dass davor nicht gemacht, weil wir das ja bei dem b ohne das bruachen
+    L[1] = np.matmul(ellDecider(ell, theta, x, y, sigma), L[1])
+    L[3] = np.matmul(ellDecider(ell, theta, x, y, sigma), L[3])
+    L[5] = np.matmul(ellDecider(ell, theta, x, y, sigma), L[5])
+
     return L
 
+def ellDecider(func, theta, x, y, sigma):
+    if func == "l1":
+        return l1(forward(theta, x, sigma), y)
+    if func == "Dl1":
+        return gradl1(theta, x, y, sigma)
+    if func == "l2":
+        return l2(forward(theta, x, sigma), y)
+    if func == "Dl2":
+        return gradl2(theta, x, y, sigma)
 
-#Ableitung wenn l gleich die Eukliedischen-Norm ist
+# Ableitung wenn l gleich die Eukliedischen-Norm ist
 def gradl1(theta, x, y, sigma):
-    f = f(theta, x, sigma)
-    return [[2*(f[0][0] - y[0][0]), 2*(f[1][0] - y[1][0]), 2*(f[2][0] - y[2][0])]]
+    f = forward(theta, x, sigma)
+
+    return np.asarray([[2 * (f[0][0] - y[0][0])], [2 * (f[1][0] - y[1][0])], [2 * (f[2][0] - y[2][0])]])
 
 
-#Berechnet die ableitung wenn l gleich der empirische log-Entropie Funktion ist
+# Berechnet die ableitung wenn l gleich der empirische log-Entropie Funktion ist
 def gradl2(theta, x, y, sigma):
-    f = f(theta, x, sigma)
-    #Berechne zuerst die einzelnen Komponenten
+    f = forward(theta, x, sigma)
+    # Berechne zuerst die einzelnen Komponenten
     a = softmax(1, f)
     b = softmax(2, f)
     c = softmax(3, f)
-    #Dann zusammen in einen Vektor schreiben und das mit dem y
-    return [[-y[0][0] + a, -y[1][0] + b, -y[2][0] + c]]
+    # Dann zusammen in einen Vektor schreiben und das mit dem y
+    return np.asarray([[-y[0][0] + a], [-y[1][0] + b], [-y[2][0] + c]])
 
 
-#berechnet Softmax
+# berechnet Softmax
 def softmax(i, f):
-
     x = np.exp(f[i][0])
     b = 0
 
     for k in range(3):
         b += np.exp(f[k][0])
 
-    return x/b
+    return x / b
 
 
 #Berechnet den Gradienten der Loss Funktion nach Theta abgeleitet
 
-def gradLoss(theta, sigma, D_sigma, ell):
-    #N = len(mask) #falls da len funktioneirt
+def gradLoss(theta, sigma, ell):
     e = 0 #Das Ergebnis
-    for i in mask: #i guess N+1 keine ahnung ob das richtig ist
-        l = np.dot(ell(theta, digits.images[i], digits.target[i], sigma), gradTf(theta, digits.images[i], sigma, D_sigma, ell))
-        #kp wie dass mit dem MNIST ist man muss habe jetzt x = MNIST[i][2] und y = MNIST[i][0] aber man muss ja noch one hot dings schreiben fuer y
+    for i in mask:
+        l = gradTf(theta, digits.images[i], one_hot(digits.target[i]), sigma, ell) #Hier muss Clemens ueberpruefen
         e += l
     return e
 
 
 #fuehrt das Gradienten Absteigsverfahren fuer eine Schrittweite a und i Iterationen aus
-def graddiscent(theta, MNIST, a, i, sigma, D_sigma, ell):
-    for j in range(i+1):
-        theta = theta - a*gradLoss(theta, MNIST, sigma, D_sigma, ell)
+def graddescent(theta, a, n, sigma, ell):
+    for j in range(n):
+        theta = theta - a*gradLoss(theta, sigma, ell)
     return theta
-
-
-
