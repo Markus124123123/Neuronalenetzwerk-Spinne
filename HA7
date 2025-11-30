@@ -1,0 +1,38 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+### Ihr braucht die entsprechenden Bilder in eurem Dateipfad. Kann sein dass die Visualisierung noch nicht klappt, konnte das wie gesagt nicht testen. 
+
+
+gate = mpimg.imread('gate.jpeg').copy()
+gate2 = np.zeros((len(gate),len(gate[0])))
+for i in range(len(gate)):
+    for j in range(len(gate[i])):
+        c = gate[i][j][0]
+        gate2[i][j] = c
+        
+concert_hall = mpimg.imread('concert_hall.jpeg').copy()
+concert_hall2 = np.zeros((len(concert_hall),len(gate[0])))
+for i in range(len(concert_hall)):
+    for j in range(len(concert_hall[i])):
+        c = concert_hall[i][j][0]
+        concert_hall2[i][j] = c
+
+A = np.array([[1,0],[0,-2]])
+def svd(A):
+    return np.linalg.svd(A, full_matrices=True, compute_uv=True, hermitian=False)
+
+def Image(A,K):
+    U = svd(A)[0].T
+    S = svd(A)[1]
+    V = svd(A)[2]
+    C = np.zeros((len(A),len(A[0])))
+    for i in range(K):
+        C += S[i] * (np.array([U[i]]).T @ np.array([V[i]]))
+    return C
+
+print(Image(gate2,1))
+
+plt.imshow(Image(gate2,1)) # hier kann man das K einstellen
+plt.show()
