@@ -33,6 +33,7 @@ def Image(A,K):
     return C
 
 print(Image(gate2,1))
+print(Image(concert_hall2,1))
 
 plt.imshow(Image(gate2,1)) # hier kann man das K einstellen
 plt.show()
