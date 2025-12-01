@@ -55,7 +55,7 @@ for i in range(3):
     for j in range(32):
         W3[i][j] = b
         b += 1
-theta = [W1, b1, W2, b2, W3, b3]
+Theta = [W1, b1, W2, b2, W3, b3]
 
 # Definition der Sigma Funktionen
 def softplus(X):
@@ -74,24 +74,13 @@ def sigmoid(X):
 
 # Ableitungen der Sigma Funktionen
 def d_softplus(X):
-    L = np.empty((len(X), len(X)))
-    for i in range(len(X)):
-        for j in range(len(X)):
-            if i == j:
-                L[i][j] = 0
-            else:
-                L[i][j] = sigmoid(X[i][j])
-    return L
+    return sigmoid(X)
 
 
 def d_sigmoid(X):
-    L = np.empty((len(X), len(X)))
+    L = np.empty((len(X), 1))
     for i in range(len(X)):
-        for j in range(len(X)):
-            if i == j:
-                L[i][j] = 0
-            else:
-                L[i][j] = -(np.exp(X[i][j])) / (1 + np.exp(X[i][j])) ** 2
+        L[i][0] = -(np.exp(X[i][0])) / (1 + np.exp(X[i][0])) ** 2
     return L
 
 
@@ -107,20 +96,26 @@ def zt(theta, x, l, sigma):
 def at(theta, x, l, sigma):
     return functionDecider(sigma, zt(theta, x, l, sigma))
 
-def functionDecider(func, X,):
+def functionDecider(func, X):
     if func == "sp":
         return softplus(X)
-    if func == "Dsp":
+    if func == "spD":
         return d_softplus(X)
     if func == "sm":
         return sigmoid(X)
-    if func == "Dsm":
+    if func == "smD":
         return d_sigmoid(X)
 
+def vec(A):
+    L = []
+    for i in range(0, len(A[0])):
+        for j in range(0, len(A)):
+            L.append([A[j][i]])
+    return np.asarray(L)
 
 # Auswertung des neuronalen Netzes mit beliebigem theta
 def forward(theta, x, sigma):
-    return functionDecider(sigma, np.matmul(theta[4], functionDecider(sigma, np.matmul(theta[2], functionDecider(sigma, np.matmul(theta[0], x) + theta[1]) + theta[3]) + theta[5])))
+    return functionDecider(sigma, np.matmul(theta[4], functionDecider(sigma, np.matmul(theta[2], functionDecider(sigma, np.matmul(theta[0], x) + theta[1])) + theta[3])) + theta[5])
 
 
 # Definitionen der beiden l funktionen
@@ -155,7 +150,7 @@ def gradb(l, theta, x, gradTf, sigma):
 # Berechnet den Gradienten von l(f(theta, x), y) abgeleitet nach der Weight matrix W^(l)
 def gradW(l, theta, x, y, gradTf, sigma, ell):
     b = gradTf[2*l-1]
-    b = np.matmul(ellDecider(ell, theta, x, y, sigma), b)  # Damit dass zu ell wird
+    b = np.matmul(ellDecider(ell, theta, x, y, sigma + "D"), b)  # Damit dass zu ell wird
     a = at(theta, x, l-1, sigma).T
     return np.matmul(b, a)
 
@@ -194,7 +189,7 @@ def ellDecider(func, theta, x, y, sigma):
 def gradl1(theta, x, y, sigma):
     f = forward(theta, x, sigma)
 
-    return np.asarray([[2 * (f[0][0] - y[0][0])], [2 * (f[1][0] - y[1][0])], [2 * (f[2][0] - y[2][0])]])
+    return np.asarray([[2 * (f[0][0] - y[0][0]), 2 * (f[1][0] - y[1][0]), 2 * (f[2][0] - y[2][0])]])
 
 
 # Berechnet die ableitung wenn l gleich der empirische log-Entropie Funktion ist
@@ -205,7 +200,7 @@ def gradl2(theta, x, y, sigma):
     b = softmax(2, f)
     c = softmax(3, f)
     # Dann zusammen in einen Vektor schreiben und das mit dem y
-    return np.asarray([[-y[0][0] + a], [-y[1][0] + b], [-y[2][0] + c]])
+    return np.asarray([[-y[0][0] + a, -y[1][0] + b, -y[2][0] + c]])
 
 
 # berechnet Softmax
@@ -224,7 +219,7 @@ def softmax(i, f):
 def gradLoss(theta, sigma, ell):
     e = 0 #Das Ergebnis
     for i in mask:
-        l = gradTf(theta, digits.images[i], one_hot(digits.target[i]), sigma, ell) #Hier muss Clemens ueberpruefen
+        l = gradTf(theta, vec(digits.images[i]), one_hot(digits.target[i]), sigma, ell) #Hier muss Clemens ueberpruefen
         e += l
     return e
 
@@ -234,3 +229,5 @@ def graddescent(theta, a, n, sigma, ell):
     for j in range(n):
         theta = theta - a*gradLoss(theta, sigma, ell)
     return theta
+
+print(graddescent(Theta, 1, 1, "sm", "Dl1"))
