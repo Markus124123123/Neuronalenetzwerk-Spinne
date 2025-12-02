@@ -30,7 +30,8 @@ def one_hot(data):
             return np.array([[0],[1],[0]])
         elif data == 7:
             return np.array([[0],[0],[1]])
-
+"""
+#Alte Theta initialisierung
 W1 = np.empty((64, 64))
 b1 = np.empty((64, 1))
 c = 1
@@ -56,12 +57,23 @@ for i in range(3):
         W3[i][j] = b
         b += 1
 Theta = [W1, b1, W2, b2, W3, b3]
+"""
+
+# Macht Theta mit random Werten zwischen 0 und 1
+W1 = np.random.rand(64, 64)
+b1 = np.random.rand(64, 1)
+W2 = np.random.rand(32, 64)
+b2 = np.random.rand(32, 1)
+W3 = np.random.rand(3, 32)
+b3 =np.random.rand(3, 1)
+
+Theta = [W1, b1, W2, b2, W3, b3]
 
 # Definition der Sigma Funktionen
 def softplus(X):
     L = np.empty((len(X), 1))
     for i in range(len(X)):
-        L[i][0] = np.log(1 + np.exp(X[i][0]))
+        L[i][0] = np.log1p(1 + np.exp(X[i][0]))
     return L
 
 
@@ -85,6 +97,8 @@ def d_sigmoid(X):
 
 
 def zt(theta, x, l, sigma):
+    if l == 0:
+        return x
     if l == 1:
         return np.matmul(theta[0], x) + theta[1]
     elif l == 2:
@@ -110,7 +124,7 @@ def vec(A):
     L = []
     for i in range(0, len(A[0])):
         for j in range(0, len(A)):
-            L.append([A[j][i]])
+            L.append([A[j][i]/ 256]) #Damit die zwischen 0 und 1 sind.
     return np.asarray(L)
 
 # Auswertung des neuronalen Netzes mit beliebigem theta
@@ -150,7 +164,7 @@ def gradb(l, theta, x, gradTf, sigma):
 # Berechnet den Gradienten von l(f(theta, x), y) abgeleitet nach der Weight matrix W^(l)
 def gradW(l, theta, x, y, gradTf, sigma, ell):
     b = gradTf[2*l-1]
-    b = np.matmul(ellDecider(ell, theta, x, y, sigma + "D"), b)  # Damit dass zu ell wird
+    b = np.matmul(ellDecider(ell, theta, x, y, sigma + "D"), b.T).T  # Damit dass zu ell wird
     a = at(theta, x, l-1, sigma).T
     return np.matmul(b, a)
 
@@ -159,7 +173,7 @@ def gradW(l, theta, x, y, gradTf, sigma, ell):
 def gradTf(theta, x, y, sigma, ell):
     o = np.asarray([])  # ist ein Platzhalter damit beim hinzufuegen die Indizes sich nicht verschieben
 
-    w3 = np.matmul(ellDecider(ell, theta, x, y, sigma), at(theta, x, 2, sigma).T)  # Schon zur komponente von grad theta l
+    w3 = np.matmul(ellDecider(ell, theta, x, y, sigma).T, at(theta, x, 2, sigma).T)  # Schon zur komponente von grad theta l
     b3 = np.eye(3, 3)
 
     L = [o, o, o, o, w3, b3]
@@ -169,9 +183,9 @@ def gradTf(theta, x, y, sigma, ell):
     L[0] = gradW(1, theta, x, y, L, sigma, ell)
 
     # Haben dass davor nicht gemacht, weil wir das ja bei dem b ohne das bruachen
-    L[1] = np.matmul(ellDecider(ell, theta, x, y, sigma), L[1])
-    L[3] = np.matmul(ellDecider(ell, theta, x, y, sigma), L[3])
-    L[5] = np.matmul(ellDecider(ell, theta, x, y, sigma), L[5])
+    L[1] = np.matmul(ellDecider(ell, theta, x, y, sigma), L[1].T).T
+    L[3] = np.matmul(ellDecider(ell, theta, x, y, sigma), L[3].T).T
+    L[5] = np.matmul(ellDecider(ell, theta, x, y, sigma), L[5].T).T
 
     return L
 
@@ -196,9 +210,9 @@ def gradl1(theta, x, y, sigma):
 def gradl2(theta, x, y, sigma):
     f = forward(theta, x, sigma)
     # Berechne zuerst die einzelnen Komponenten
-    a = softmax(1, f)
-    b = softmax(2, f)
-    c = softmax(3, f)
+    a = softmax(0, f)
+    b = softmax(1, f)
+    c = softmax(2, f)
     # Dann zusammen in einen Vektor schreiben und das mit dem y
     return np.asarray([[-y[0][0] + a, -y[1][0] + b, -y[2][0] + c]])
 
@@ -217,17 +231,27 @@ def softmax(i, f):
 #Berechnet den Gradienten der Loss Funktion nach Theta abgeleitet
 
 def gradLoss(theta, sigma, ell):
-    e = 0 #Das Ergebnis
+    e = [np.zeros((64, 64)), np.zeros((64, 1)), np.zeros((32, 64)), np.zeros((32, 1)), np.zeros((3, 32)), np.zeros((3, 1))] #Das Ergebnis
     for i in mask:
         l = gradTf(theta, vec(digits.images[i]), one_hot(digits.target[i]), sigma, ell) #Hier muss Clemens ueberpruefen
-        e += l
+        e[0] = np.add(e[0], l[0])
+        e[1] = np.add(e[1], l[1])
+        e[2] = np.add(e[2], l[2])
+        e[3] = np.add(e[3], l[3])
+        e[4] = np.add(e[4], l[4])
+        e[5] = np.add(e[5], l[5])
     return e
 
 
 #fuehrt das Gradienten Absteigsverfahren fuer eine Schrittweite a und i Iterationen aus
 def graddescent(theta, a, n, sigma, ell):
     for j in range(n):
-        theta = theta - a*gradLoss(theta, sigma, ell)
+        theta[0] = np.add(theta[0], - a*gradLoss(theta, sigma, ell)[0])
+        theta[1] = np.add(theta[1], - a * gradLoss(theta, sigma, ell)[1])
+        theta[2] = np.add(theta[2], - a * gradLoss(theta, sigma, ell)[2])
+        theta[3] = np.add(theta[3], - a * gradLoss(theta, sigma, ell)[3])
+        theta[4] = np.add(theta[4], - a * gradLoss(theta, sigma, ell)[4])
+        theta[5] = np.add(theta[5], - a * gradLoss(theta, sigma, ell)[5])
     return theta
 
-print(graddescent(Theta, 1, 1, "sm", "Dl1"))
+print(graddescent(Theta, 0.1, 1, "sm", "Dl1"))
