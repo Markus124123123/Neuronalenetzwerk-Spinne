@@ -124,7 +124,7 @@ def vec(A):
     L = []
     for i in range(0, len(A[0])):
         for j in range(0, len(A)):
-            L.append([A[j][i]/ 256]) #Damit die zwischen 0 und 1 sind.
+            L.append([A[j][i]/ 255]) #Damit die zwischen 0 und 1 sind.
     return np.asarray(L)
 
 # Auswertung des neuronalen Netzes mit beliebigem theta
@@ -254,4 +254,11 @@ def graddescent(theta, a, n, sigma, ell):
         theta[5] = np.add(theta[5], - a * gradLoss(theta, sigma, ell)[5])
     return theta
 
-print(graddescent(Theta, 0.1, 1, "sm", "Dl1"))
+theta = graddescent(Theta, 0.005, 15, "sm", "Dl1")
+theta = graddescent(theta, 0.005, 15, "sm", "Dl1")
+#theta = graddescent(theta, 0.2, 10, "sm", "Dl1")
+#theta = graddescent(theta, 0.2, 10, "sm", "Dl1")
+theta = graddescent(theta, 0.005, 15, "sm", "Dl1")
+print(forward(theta, vec(digits.images[1]), "sm"))
+print(forward(theta, vec(digits.images[5]), "sm"))
+print(forward(theta, vec(digits.images[7]), "sm"))
