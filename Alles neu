@@ -4,6 +4,7 @@ from sklearn.datasets import load_digits
 import numpy as np
 import scipy as scipy
 import sklearn as sk
+import random
 
 digits = load_digits()
 
@@ -58,22 +59,26 @@ for i in range(3):
         b += 1
 Theta = [W1, b1, W2, b2, W3, b3]
 """
-x = 500
+
+x = 50
+y = -50
 # Macht Theta mit random Werten zwischen 0 und 1
-W1 = np.random.randint( 0, x, (64, 64))
-b1 = np.random.randint(0 , x, (64, 1))
-W2 = np.random.randint(0 , x, (32, 64))
-b2 = np.random.randint(0 , x, (32, 1))
-W3 = np.random.randint(0 , x, (3, 32))
-b3 =np.random.randint(0 , x, (3, 1))
+W1 = np.random.randint( y , x, (64, 64))
+b1 = np.random.randint(y , x, (64, 1))
+W2 = np.random.randint(y , x, (32, 64))
+b2 = np.random.randint(y , x, (32, 1))
+W3 = np.random.randint(y , x, (3, 32))
+b3 = np.random.randint(y , x, (3, 1))
 
 Theta = [W1, b1, W2, b2, W3, b3]
+
+#print(Theta)
 
 # Definition der Sigma Funktionen
 def softplus(X):
     L = np.empty((len(X), 1))
     for i in range(len(X)):
-        L[i][0] = np.log1p(1 + np.scipy.special.expit(X[i][0]))
+        L[i][0] = np.log1p(1 + scipy.special.expit(X[i][0]))
     return L
 
 
@@ -92,22 +97,23 @@ def d_softplus(X):
 def d_sigmoid(X):
     L = np.empty((len(X), 1))
     for i in range(len(X)):
-        L[i][0] = -(scipy.special.expit(X[i][0])) / (1 + scipy.special.expit(X[i][0])) ** 2
+        L[i][0] = scipy.special.expit(-X[i][0]) / ((1 + scipy.special.expit(-X[i][0])) ** 2)
     return L
 
 
 def zt(theta, x, l, sigma):
-    if l == 0:
-        return x
     if l == 1:
         return np.matmul(theta[0], x) + theta[1]
     elif l == 2:
         return np.matmul(theta[2], at(theta, x, 1, sigma)) + theta[3]
     else:
-        return np.matmul(theta[4], at(theta, x, 2, sigma)) + theta[5]
+        return forward(theta, x, sigma)
+        #return np.matmul(theta[4], at(theta, x, 2, sigma)) + theta[5]
 
 
 def at(theta, x, l, sigma):
+    if l == 0:
+        return x
     return functionDecider(sigma, zt(theta, x, l, sigma))
 
 def functionDecider(func, X):
@@ -124,12 +130,16 @@ def vec(A):
     L = []
     for i in range(0, len(A[0])):
         for j in range(0, len(A)):
-            L.append([A[j][i]]) #Damit die zwischen 0 und 1 sind.
+            L.append([A[j][i]*10]) #Damit die zwischen 0 und 1 sind.
     return np.asarray(L)
 
 # Auswertung des neuronalen Netzes mit beliebigem theta
 def forward(theta, x, sigma):
-    return functionDecider(sigma, np.matmul(theta[4], functionDecider(sigma, np.matmul(theta[2], functionDecider(sigma, np.matmul(theta[0], x) + theta[1])) + theta[3])) + theta[5])
+    #return functionDecider(sigma, np.matmul(theta[4], functionDecider(sigma, np.matmul(theta[2], functionDecider(sigma, np.matmul(theta[0], x) + theta[1])) + theta[3])) + theta[5]) #Maybe ohne sigma
+    return np.matmul(theta[4], functionDecider(sigma, np.matmul(theta[2], functionDecider(sigma, np.matmul(theta[0], x) + theta[1])) + theta[3])) + theta[5] #Maybe ohne sigma
+
+#print(forward(Theta, vec(digits.images[1]), "sm"))
+#print(forward(Theta, vec(digits.images[5]), "sm"))
 
 # Definitionen der beiden l funktionen
 def l1(S, Y):
@@ -142,7 +152,7 @@ def l1(S, Y):
 def l2(S, Y):
     N = 0
     for i in range(len(S)):
-        N += Y[i][0] * np.log(softmax(i, S))
+        N += Y[i][0] * np.log1p(softmax(i, S))
     return -N
 
 
@@ -150,20 +160,20 @@ def l2(S, Y):
 def gradb(l, theta, x, gradTf, sigma):
     # diag(D_sigma(z)) * W^T * b preparen
     z = zt(theta, x, l, sigma)
-    z = functionDecider(sigma, z).T  # transponieren, damit man dann als Liste zugreifen kann
+    z = functionDecider(sigma + "D", z).T  # transponieren, damit man dann als Liste zugreifen kann
     z = np.diag(z[0])
 
     # Mit den indizes gucken
     W = theta[2 * l].T
     b = gradTf[2 * l + 1]
 
-    return np.matmul(z, np.matmul(W, b))  # multipliziert diag(D_sigma(z)) * W^T * b
+    return np.matmul(np.matmul(z, W), b)  # multipliziert diag(D_sigma(z)) * W^T * b
 
 
 # Berechnet den Gradienten von l(f(theta, x), y) abgeleitet nach der Weight matrix W^(l)
 def gradW(l, theta, x, y, gradTf, sigma, ell):
     b = gradTf[2*l-1]
-    b = np.matmul(ellDecider(ell, theta, x, y, sigma + "D"), b.T).T  # Damit dass zu ell wird
+    b = np.matmul(ellDecider(ell, theta, x, y, sigma), b.T).T  # Damit dass zu ell wird
     a = at(theta, x, l-1, sigma).T
     return np.matmul(b, a)
 
@@ -219,9 +229,9 @@ def gradl2(theta, x, y, sigma):
 # berechnet Softmax
 def softmax(i, f):
     x = np.scipy.special.expit(f[i][0])
-    b = 0
 
-    for k in range(3):
+    b = 0
+    for k in range(len(f)):
         b += np.scipy.special.expit(f[k][0])
 
     return x / b
@@ -230,14 +240,15 @@ def softmax(i, f):
 
 def gradLoss(theta, sigma, ell):
     e = [np.zeros((64, 64)), np.zeros((64, 1)), np.zeros((32, 64)), np.zeros((32, 1)), np.zeros((3, 32)), np.zeros((3, 1))] #Das Ergebnis
-    for i in mask:
+    sa = random.sample(mask, 10)
+    for i in sa:
         l = gradTf(theta, vec(digits.images[i]), one_hot(digits.target[i]), sigma, ell)
-        e[0] = np.add(e[0], l[0])
-        e[1] = np.add(e[1], l[1])
-        e[2] = np.add(e[2], l[2])
-        e[3] = np.add(e[3], l[3])
-        e[4] = np.add(e[4], l[4])
-        e[5] = np.add(e[5], l[5])
+        e[0] = np.add(e[0], l[0]) / len(sa)
+        e[1] = np.add(e[1], l[1]) / len(sa)
+        e[2] = np.add(e[2], l[2]) / len(sa)
+        e[3] = np.add(e[3], l[3]) / len(sa)
+        e[4] = np.add(e[4], l[4]) / len(sa)
+        e[5] = np.add(e[5], l[5]) / len(sa)
     return e
 
 
@@ -274,5 +285,5 @@ def maxindex(A):
     elif A[2][0] > A[1][0] and A[2][0] > A[0][0]:
         return 2
 
-print(main(0.1, 1, 1,"sm", "Dl1", 3))
+print(main(0.1, 5, 50,"sm", "Dl1", 3))
 
