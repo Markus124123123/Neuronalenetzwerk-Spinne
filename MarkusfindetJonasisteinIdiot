@@ -1,3 +1,5 @@
+import sys
+
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from sklearn.datasets import load_digits
@@ -5,6 +7,8 @@ import numpy as np
 import scipy as scipy
 import sklearn as sk
 import random
+
+np.set_printoptions(threshold=sys.maxsize)
 
 digits = load_digits()
 
@@ -58,8 +62,8 @@ for i in range(3):
         W3[i][j] = b/1000
         b += 1
 Theta = [W1, b1, W2, b2, W3, b3]
-"""
 
+"""
 x = 1
 y = -1
 # Macht Theta mit random Werten zwischen 0 und 1
@@ -263,12 +267,12 @@ def main(stepsize, gradIter, Epochen, sigma, ell, n):
     for i in range(Epochen):
         theta = graddescent(theta, stepsize, gradIter, sigma, ell)
     C_matrix = np.zeros((3,3))
-    #print(theta)
+    print(theta)
     for i in range(n):
-        print(forward(theta,vec(digits.images[mask[i]]),sigma))
+        #print(forward(theta,vec(digits.images[mask[i]]),sigma))
         guess = maxindex(forward(theta,vec(digits.images[mask[i]]),sigma))
         actual = maxindex(one_hot(digits.target[mask[i]]))
-        print(actual,guess)
+        #print(actual,guess)
         C_matrix[actual][guess] += 1
     return C_matrix
 
@@ -280,4 +284,8 @@ def maxindex(A):
     elif A[2][0] > A[1][0] and A[2][0] > A[0][0]:
         return 2
 
-print(main(0.1, 50, 70,"sm", "Dl1", 20))
+print(main(0.0001, 100, 100,"sp", "Dl1", len(mask)))
+
+"""
+Sigmoid und DL1: x durch 50 teilen Theta con 1 bis -1 und dann Stepsize 0.1 und gradIter = 50 Epchen = 70 
+"""
