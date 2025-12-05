@@ -107,8 +107,7 @@ def zt(theta, x, l, sigma):
     elif l == 2:
         return np.matmul(theta[2], at(theta, x, 1, sigma)) + theta[3]
     else:
-        return forward(theta, x, sigma)
-        #return np.matmul(theta[4], at(theta, x, 2, sigma)) + theta[5]
+        return np.matmul(theta[4], at(theta, x, 2, sigma)) + theta[5]
 
 
 def at(theta, x, l, sigma):
@@ -135,11 +134,7 @@ def vec(A):
 
 # Auswertung des neuronalen Netzes mit beliebigem theta
 def forward(theta, x, sigma):
-    #return functionDecider(sigma, np.matmul(theta[4], functionDecider(sigma, np.matmul(theta[2], functionDecider(sigma, np.matmul(theta[0], x) + theta[1])) + theta[3])) + theta[5]) #Maybe ohne sigma
     return np.matmul(theta[4], functionDecider(sigma, np.matmul(theta[2], functionDecider(sigma, np.matmul(theta[0], x) + theta[1])) + theta[3])) + theta[5] #Maybe ohne sigma
-
-#print(forward(Theta, vec(digits.images[1]), "sm"))
-#print(forward(Theta, vec(digits.images[5]), "sm"))
 
 # Definitionen der beiden l funktionen
 def l1(S, Y):
@@ -285,5 +280,5 @@ def maxindex(A):
     elif A[2][0] > A[1][0] and A[2][0] > A[0][0]:
         return 2
 
-print(main(0.1, 5, 50,"sm", "Dl1", 3))
+print(main(0.01, 10, 50,"sm", "Dl1", 3))
 
