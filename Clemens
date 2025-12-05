@@ -280,13 +280,6 @@ def main(stepsize, gradIter, Epochen, sigma, ell, n):
         C_matrix[actual][guess] += 1
     return C_matrix
 
-def bestindex(A):
-    A[0][0] = -abs(A[0][0] - 1)
-    A[1][0] = -abs(A[1][0] - 1)
-    A[2][0] = -abs(A[2][0] - 1)
-    return maxindex(A)
-
-
 def maxindex(A):
     if A[0][0] > A[1][0] and A[0][0] > A[2][0]:
         return 0
