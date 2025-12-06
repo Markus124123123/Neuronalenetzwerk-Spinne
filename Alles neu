@@ -289,3 +289,7 @@ print(main(0.001, 300, 300,"sp", "Dl1", len(mask)))
 """
 Sigmoid und DL1: x durch 50 teilen Theta con 1 bis -1 und dann Stepsize 0.1 und gradIter = 50 Epchen = 70 
 """
+
+"""
+Softplus (sp) und DL1: stepsize 0.01, 300 x 300, Theta -1 bis 1, durch 50 teilen und samplesize 10
+"""
