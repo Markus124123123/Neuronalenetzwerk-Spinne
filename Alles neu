@@ -168,7 +168,6 @@ def gradb(l, theta, x, gradTf, sigma):
 # Berechnet den Gradienten von l(f(theta, x), y) abgeleitet nach der Weight matrix W^(l)
 def gradW(l, theta, x, y, gradTf, sigma, ell, f):
     b = gradTf[2*l-1]
-    b = np.matmul(ellDecider(ell, y, f), b.T).T  # Damit dass zu ell wird
     a = at(theta, x, l-1, sigma).T
     return np.matmul(b, a)
 
@@ -184,16 +183,17 @@ def gradTf(theta, x, y, sigma, ell):
 
     L = [o, o, o, o, w3, b3]
     L[3] = gradb(2, theta, x, L, sigma)
-    L[2] = gradW(2, theta, x, y, L, sigma, ell, f)
     L[1] = gradb(1, theta, x, L, sigma)
-    L[0] = gradW(1, theta, x, y, L, sigma, ell, f)
 
-    # Haben dass davor nicht gemacht, weil wir das ja bei dem b ohne das bruachen
     L[1] = np.matmul(ellDecider(ell, y, f), L[1].T).T
     L[3] = np.matmul(ellDecider(ell, y, f), L[3].T).T
     L[5] = np.matmul(ellDecider(ell, y, f), L[5].T).T
 
+    L[2] = gradW(2, theta, x, y, L, sigma, ell, f)
+    L[0] = gradW(1, theta, x, y, L, sigma, ell, f)
+
     return L
+
 
 def ellDecider(func, y, f):
     if func == "l1":
@@ -286,7 +286,7 @@ def maxindex(A):
     elif A[2][0] > A[1][0] and A[2][0] > A[0][0]:
         return 2
 
-print(main(0.001, 100, 100,"sp", "Dl1", len(mask)))
+print(main(0.1, 100, 100,"sm", "Dl1", len(mask)))
 
 """
 Sigmoid und DL1: x durch 50 teilen Theta con 1 bis -1 und dann Stepsize 0.1 und gradIter = 50 Epchen = 70 
