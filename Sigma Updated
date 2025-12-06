@@ -3,7 +3,6 @@
 import sklearn as sk
 from sklearn.datasets import load_digits
 import numpy as np
-import scipy as scipy
 import random
 
 digits = load_digits()
@@ -78,14 +77,14 @@ Theta = [W1, b1, W2, b2, W3, b3]
 def softplus(X):
     L = np.empty((len(X), 1))
     for i in range(len(X)):
-        L[i][0] = np.log1p(exp(X[i][0]))
+        L[i][0] = np.log1p(np.exp(X[i][0]))
     return L
 
 
 def sigmoid(X):
     L = np.empty((len(X), 1))
     for i in range(len(X)):
-        L[i][0] = 1/(1+exp(-X[i][0])) #scipy.special.expit(-X[i][0])
+        L[i][0] = 1 / (1 + np.exp(-X[i][0]))
     return L
 
 
@@ -97,7 +96,7 @@ def d_softplus(X):
 def d_sigmoid(X):
     L = np.empty((len(X), 1))
     for i in range(len(X)):
-        L[i][0] = exp(-X[i][0])/((1+exp(-X[i][0]))**2)
+        L[i][0] = np.exp(-X[i][0]) / ((1 + np.exp(-X[i][0])) ** 2)
     return L
 
 
@@ -147,7 +146,7 @@ def l1(S, Y):
 def l2(S, Y):
     N = 0
     for i in range(len(S)):
-        N += Y[i][0] * np.log1p(softmax(i, S))
+        N += Y[i][0] * np.log(softmax(i, S))
     return -N
 
 
@@ -168,7 +167,6 @@ def gradb(l, theta, x, gradTf, sigma):
 # Berechnet den Gradienten von l(f(theta, x), y) abgeleitet nach der Weight matrix W^(l)
 def gradW(l, theta, x, y, gradTf, sigma, ell, f):
     b = gradTf[2*l-1]
-    b = np.matmul(ellDecider(ell, y, f), b.T).T  # Damit dass zu ell wird
     a = at(theta, x, l-1, sigma).T
     return np.matmul(b, a)
 
@@ -184,16 +182,17 @@ def gradTf(theta, x, y, sigma, ell):
 
     L = [o, o, o, o, w3, b3]
     L[3] = gradb(2, theta, x, L, sigma)
-    L[2] = gradW(2, theta, x, y, L, sigma, ell, f)
     L[1] = gradb(1, theta, x, L, sigma)
-    L[0] = gradW(1, theta, x, y, L, sigma, ell, f)
 
-    # Haben dass davor nicht gemacht, weil wir das ja bei dem b ohne das bruachen
     L[1] = np.matmul(ellDecider(ell, y, f), L[1].T).T
     L[3] = np.matmul(ellDecider(ell, y, f), L[3].T).T
     L[5] = np.matmul(ellDecider(ell, y, f), L[5].T).T
 
+    L[2] = gradW(2, theta, x, y, L, sigma, ell, f)
+    L[0] = gradW(1, theta, x, y, L, sigma, ell, f)
+
     return L
+
 
 def ellDecider(func, y, f):
     if func == "l1":
@@ -222,11 +221,11 @@ def gradl2(y, f):
 
 # berechnet Softmax
 def softmax(i, f):
-    x = scipy.special.expit(f[i][0])
+    x = np.exp(f[i][0])
 
     b = 0
     for k in range(len(f)):
-        b += scipy.special.expit(f[k][0])
+        b += np.exp(f[k][0])
 
     return x / b
 
@@ -258,7 +257,7 @@ def graddescent(theta, a, n, sigma, ell):
         theta[3] = np.add(theta[3], - a * gL[3])
         theta[4] = np.add(theta[4], - a * gL[4])
         theta[5] = np.add(theta[5], - a * gL[5])
-        #print(f"Gradienteniteration: {j}")
+        print(f"Gradienteniteration: {j}")
     return theta
 
 def main(stepsize, gradIter, Epochen, sigma, ell, n):
@@ -286,9 +285,8 @@ def maxindex(A):
     elif A[2][0] > A[1][0] and A[2][0] > A[0][0]:
         return 2
 
-print(main(0.0005, 100, 100,"sm", "Dl1", len(mask)))
+print(main(0.001, 100, 100,"sp", "Dl1", len(mask)))
 
 """
 Sigmoid und DL1: x durch 50 teilen Theta con 1 bis -1 und dann Stepsize 0.1 und gradIter = 50 Epchen = 70 
-Softplus und DL1: x mal 10, stepsize 0.0005, 100, 100, Theta wie oben
 """
