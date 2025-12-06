@@ -1,4 +1,4 @@
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 #import matplotlib.image as mpimg
 import sklearn as sk
 from sklearn.datasets import load_digits
@@ -271,6 +271,9 @@ def main(stepsize, gradIter, Epochen, sigma, ell, n):
         actual = maxindex(one_hot(digits.target[mask[i]]))
         #print(actual,guess)
         C_matrix[actual][guess] += 1
+        if actual != guess:
+            plt.matshow(digits.images[mask[i]])
+            plt.show()
     return C_matrix
 
 def maxindex(A):
