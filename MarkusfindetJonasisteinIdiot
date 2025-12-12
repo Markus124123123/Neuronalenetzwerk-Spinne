@@ -3,7 +3,6 @@
 import sklearn as sk
 from sklearn.datasets import load_digits
 import numpy as np
-import random
 
 digits = load_digits()
 
@@ -208,11 +207,9 @@ def softmax(i, f):
 
 def gradLoss(theta, sigma, ell):
     e = [np.zeros((64, 64)), np.zeros((64, 1)), np.zeros((32, 64)), np.zeros((32, 1)), np.zeros((3, 32)), np.zeros((3, 1))] #Das Ergebnis
-    sa = random.sample(mask, 10)
-    #print(sa)
-    for i in sa:
+    for i in mask:
         l = gradTf(theta, vec(digits.images[i]), one_hot(digits.target[i]), sigma, ell)
-        m = len(sa)
+        m = len(mask)
         e[0] = np.add(e[0], l[0]) / m
         e[1] = np.add(e[1], l[1]) / m
         e[2] = np.add(e[2], l[2]) / m
@@ -241,7 +238,7 @@ def main(stepsize, gradIter, Epochen, sigma, ell, n):
     for i in range(Epochen):
         theta = graddescent(theta, stepsize, gradIter, sigma, ell)
         c += 1
-        #print(f"Epoche: {c}")
+        print(f"\rEpoche: {c}", end="", flush=True)
     C_matrix = np.zeros((3,3))
     #print(theta)
     for i in range(n):
@@ -250,6 +247,8 @@ def main(stepsize, gradIter, Epochen, sigma, ell, n):
         actual = maxindex(one_hot(digits.target[testmask[i]]))
         #print(actual,guess)
         C_matrix[actual][guess] += 1
+    print()
+    print("Confusion-Matrix:")
     return C_matrix
 
 def maxindex(A):
@@ -270,7 +269,7 @@ def maxindex(A):
 #print(main(0.1, 150, 150,"sm", "Dl2", len(testmask)))
 
 #sp und Dl2
-print(main(0.5, 150, 150,"sp", "Dl2", len(testmask)))
+print(main(0.1, 10, 100,"sp", "Dl2", len(testmask)))
 
 """
 Bei x durch 50 Teilen
