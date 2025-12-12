@@ -37,3 +37,38 @@ print(Image(concert_hall2,1))
 
 plt.imshow(Image(gate2,1)) # hier kann man das K einstellen
 plt.show()
+
+
+
+Hochladen des Datensatzes und Maske erstellen:
+
+Dies tun wir indem wir den Datensatz digits durchgehen, wobei wir die letzten 450 als Testdaten nehmen und den rest als Trainingsdaten.
+Anschliessend filtern wir mit einer maske jeweills die Test und Trainingsdatensaetze nach den Werten 1, 5 und 7
+
+
+
+
+Aufgabe 1.
+
+In diesem Absatz sind one_hot und unsere aktivierungsfunktionen Softplus und Sigmoid mit ihren Ableitungen definiert.
+
+Die one_hot funktion konvertiert die Targets, also die richtigen Zuordnungen unserer Bilder, in dreidimensionale Vektoren. Dies benoetigne wir, um den Abstand von der loesung die das Neuronale Netz ermittelt hat mit der tatsaechlichen Loesung zu vergleichen.
+
+Als Aktivierungsfunktionen, haben wir Sigmoid und Softplus implementiert. Dabei haben wir fuer mehr Stabilitaet np.log1p anstelle des normalen Logarithmus verwendet.
+
+Wir haben ebenfalls die Ableitungen der Aktiviertungsfunktionen implementiert.
+
+
+
+
+
+Initialisierung von Theta und dem Bild x.
+
+Damit wir fuer unser Gradienten Abstiegsverfahren einen Startwert haben, waehlen wir uns ein Theta mit Zufaelligen Eintraegen. 
+Diese Zufaelligen Eintraege werden Normalverteilt aus dem Intervall zwischen -1 und 1 gewaehlt. 
+Dabei hat unser zum Start gewaehltes Theta selbstverstaendlich die Selben Dimensionen wie in der Aufgabenstellung beschrieben.
+
+Ausserdem muessen wir unser eingabebild Skalieren und Vektorisieren. Da das Bild x eingabewerte ungefaehr zwischen 1 und 20 hat reicht es aus durch 50 zu teilen, damit sichergestellt ist, dass sich die Eintraege des Vektors zwischen 0 und 1 befinden.
+
+Wir moechten, dass die Eintraege von Theta und der Matrix unseres Bildes, betragsmaessig kleiner als 1 sind, da sonst die Werte die wir unserer Aktivierungsfunktion geben zu gross sind und keine guten Ergebnisse geliefert werden.
+
