@@ -3,12 +3,22 @@
 import sklearn as sk
 from sklearn.datasets import load_digits
 import numpy as np
+import random
 
-digits = load_digits()
+X = load_digits().images
+Y = load_digits().target
 
+TrainingI, TestI, TrainingT, TestT = sk.model_selection.train_test_split(X, Y, test_size=0.2, random_state=42, stratify=Y)
+
+mask = np.isin(TrainingT, [1,5,7])
+testmask = np.isin(TestT, [1,5,7])
+
+#print(TrainingT[1])
+#print(TestT[2])
+"""
 #Maske für unseren Datensatz
 mask = [] #hier wird die maske definiert
-for i in range(len(digits.target)-300):
+for i in range(len(digits.target)-450):
     if digits.target[i] == 1:
         mask.append(i)
     elif digits.target[i] == 5:
@@ -17,27 +27,23 @@ for i in range(len(digits.target)-300):
         mask.append(i)
 
 testmask = [] #hier wird die maske definiert
-for i in range(len(digits.target)-300, len(digits.target)):
+for i in range(len(digits.target)-450, len(digits.target)):
     if digits.target[i] == 1:
         testmask.append(i)
     elif digits.target[i] == 5:
         testmask.append(i)
     elif digits.target[i] == 7:
         testmask.append(i)
+"""
 
 #One-Hot-Funktion
 def one_hot(data):
-    if type(data) == np.ndarray:
-        for i in range(len(digits.images)):
-            if (digits.images[i]==data).all():
-                return one_hot(i)
-    else:
-        if data == 1:
-            return np.array([[1],[0],[0]])
-        elif data == 5:
-            return np.array([[0],[1],[0]])
-        elif data == 7:
-            return np.array([[0],[0],[1]])
+    if data == 1:
+        return np.array([[1],[0],[0]])
+    elif data == 5:
+        return np.array([[0],[1],[0]])
+    elif data == 7:
+        return np.array([[0],[0],[1]])
 
 x = 1
 y = -1
@@ -78,6 +84,14 @@ def d_sigmoid(X):
     return L
 
 
+def vec(A):
+    L = []
+    for i in range(0, len(A[0])):
+        for j in range(0, len(A)):
+            L.append([A[j][i]/50]) #Damit die zwischen 0 und 1 sind.
+    return np.asarray(L)
+
+
 def zunda(theta, x, sigma):
     z1 = np.matmul(theta[0], x) + theta[1]
     a1 = functionDecider(sigma, z1)
@@ -96,13 +110,6 @@ def functionDecider(func, X):
         return sigmoid(X)
     if func == "smD":
         return d_sigmoid(X)
-
-def vec(A):
-    L = []
-    for i in range(0, len(A[0])):
-        for j in range(0, len(A)):
-            L.append([A[j][i]/50]) #Damit die zwischen 0 und 1 sind.
-    return np.asarray(L)
 
 # Auswertung des neuronalen Netzes mit beliebigem theta
 def forward(theta, x, sigma):
@@ -207,9 +214,11 @@ def softmax(i, f):
 
 def gradLoss(theta, sigma, ell):
     e = [np.zeros((64, 64)), np.zeros((64, 1)), np.zeros((32, 64)), np.zeros((32, 1)), np.zeros((3, 32)), np.zeros((3, 1))] #Das Ergebnis
-    for i in mask:
+    sa = random.sample(mask, 10)
+    #print(sa)
+    for i in sa:
         l = gradTf(theta, vec(digits.images[i]), one_hot(digits.target[i]), sigma, ell)
-        m = len(mask)
+        m = len(sa)
         e[0] = np.add(e[0], l[0]) / m
         e[1] = np.add(e[1], l[1]) / m
         e[2] = np.add(e[2], l[2]) / m
@@ -260,7 +269,7 @@ def maxindex(A):
         return 2
 
 #sm und Dl1
-#print(main(0.1, 150, 150,"sm", "Dl1", len(testmask)))
+print(main(0.1, 150, 150,"sm", "Dl1", len(testmask)))
 
 #sp und Dl1
 #print(main(0.03, 150, 150,"sp", "Dl1", len(testmask)))
@@ -269,7 +278,7 @@ def maxindex(A):
 #print(main(0.1, 150, 150,"sm", "Dl2", len(testmask)))
 
 #sp und Dl2
-print(main(0.1, 10, 100,"sp", "Dl2", len(testmask)))
+#print(main(0.5, 150, 150,"sp", "Dl2", len(testmask)))
 
 """
 Bei x durch 50 Teilen
