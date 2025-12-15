@@ -3,6 +3,14 @@ import sklearn as sk
 from sklearn.datasets import load_digits
 import numpy as np
 
+"""
+Initialisirung des Datensatzes mit Sklearn.
+
+Wir initialisieren uns zuerst alle Bilder mit den zugehoerigen targets. Anschliessend teilen wir mit der in der Aufgabenstellung angegebenen Funktion in trainings und 
+Testdatensatz auf.
+Nun filtern wir mit der Maske in beiden Datensaetzen nach 1,5 und 7.
+"""
+
 X = load_digits().images
 Y = load_digits().target
 
