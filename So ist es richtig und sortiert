@@ -125,7 +125,8 @@ Theta = [W1, b1, W2, b2, W3, b3]
 
 
 """
-Aufgabe 2: Hier schreiben wir die Funktion foward und alles was wir dafuer brauchen, ebenso wie eine Funktion, die 
+Aufgabe 2: Hilfsfunktionen und Vorwaertsauswertug des Netzwerks
+Hier schreiben wir die Funktion foward und alles was wir dafuer brauchen, ebenso wie eine Funktion, die 
 Matrizen vektorisiert. Zunaechst haben wir dazu zwei Funktionen geschrieben (functiondecider und elldecider), die 
 entscheiden welche der Aktivierungs - und Lossfunktionen genutzt werden sollen. Wir machen das eigentlich nur um uns zu 
 sparen die Funktionen mehrfach zu schreiben. Um forward zu berechnen haben wir eine Funktion geschrieben, die fuer 
@@ -133,6 +134,7 @@ gegebenes theta, x und Aktivierungsfunktion die Vektoren z und a berechnet. Wich
 nach Berechnung speichern um sie nicht mehrfach neu zu berechnen. Am Ende berechnen wir die Funktion forward fast wie 
 auf dem Aufgabenblatt, als einzigen Unterschied waehlen wir auf dem letzten Layer die Identitaet als Aktivierungsfunktion.
 """
+
 
 def vec(A):
     L = []
@@ -153,6 +155,7 @@ def zunda(theta, x, sigma):
 # Auswertung des neuronalen Netzes mit beliebigem theta
 def forward(theta, x, sigma):
     return np.matmul(theta[4], functionDecider(sigma, np.matmul(theta[2], functionDecider(sigma,np.matmul(theta[0], x) +theta[1])) + theta[3])) + theta[5]
+
 
 
 def functionDecider(func, X):
@@ -252,9 +255,20 @@ def gradLoss(theta, sigma, ell):
 
 '''
 Aufgabe 4: Updaten der gelernten Parameter 
+Hier schreiben wir die Funktion, die das Gradientenabstiegsverfahren ausfuehrt. Wir minimieren nach theta, passen also 
+in jeder Iteration theta an. Das Verfahren ist im Kern so wie in der Vorlesung. Wir merken uns zusaetzlich nach dem 
+Verfahren welche Bilder mit dem gefundenen theta richtig bestimmt werden und welche falsch. So koennen wir am Ende die 
+accuracy-function plotten. Dies entspricht im Grunde dem Ergebnis nach einer Epoche. Um das zu implementieren, haben wir
+die function guess geschrieben, die das bestimmte Ergebnis mit dem echten Ergebnis vegleicht. Das fuehren wir dann 
+einmal fuer diee Testdaten und einmal fuer die Trainingsdaten aus.
 '''
+def guess(f, target):
+    target = one_hot(target)
+    if np.argmax(target.T[0]) == np.argmax(f.T[0]):
+        return 1
+    return 0
 
-# fuehrt das Gradienten Absteigsverfahren fuer eine Schrittweite a und i Iterationen aus
+
 def graddescent(theta, a, n, sigma, ell):
     Tr = []
     Te = []
@@ -267,7 +281,7 @@ def graddescent(theta, a, n, sigma, ell):
         theta[4] = np.add(theta[4], - a * gL[4])
         theta[5] = np.add(theta[5], - a * gL[5])
 
-    #Hier berechnen wir die Werte die wir dann in Aufgabe 6 brauchen um die Funktionen zu plotten
+   
     for i in range(len(maskT)):
         t = guess(forward(theta, vec(maskI[i]), sigma), maskT[i])
         Tr.append(t)
@@ -278,12 +292,7 @@ def graddescent(theta, a, n, sigma, ell):
 
     return theta, Tr, Te
 
-""" Das sind einfach Hilfsfunktionen um unsere Ergebnisse auszuwerten"""
-def guess(f, target):
-    target = one_hot(target)
-    if np.argmax(target.T[0]) == np.argmax(f.T[0]):
-        return 1
-    return 0
+
 
 def maxindex(A):
     if A[0][0] > A[1][0] and A[0][0] > A[2][0]:
@@ -292,6 +301,7 @@ def maxindex(A):
         return 1
     elif A[2][0] > A[1][0] and A[2][0] > A[0][0]:
         return 2
+
 
 
 
