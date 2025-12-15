@@ -178,10 +178,24 @@ def ellDecider(func, y, f):
     if func == "Dl2":
         return gradl2(y, f)
 
-
-"""
+'''
 Aufgabe 3: Wir berechnen jetzt den Loss und den Gradienten vom Loss mittels Backpropagation. 
-"""
+Dies tun wir indem wir uns Hilffunktionen(gradb und gradW) definieren. Gradb berechnet den Gradienten von f nach b_ell abgeleitet. Die Funktion gradW berechnet den Gradienten
+von der Loss-Funktion nach W_ell. 
+Damit Matrixmultiplikation funktioniert haben wir noch an einigen Stellen transponiert.
+Die Funktion backprop berechnet die Backpropagation.
+Dies tun wir indem wir zuerst die Ableitungen von f nach b_3 und nach W3 berechnen.
+Der einfachheit halber berechnen wir nun alle Ableitungen von f nach b_ell abgeleitet mit gradb.
+Nun koennen wir die jetzt berechneten Gradienten von f skalar mit dem Gradienten nach der ersten Komponente der Loss funktion (Dl1 und Dl2) multiplizieren. 
+Dies haben wir davor nicht gemacht, da wir die Gradienten nach f gebraucht haben um die Gradienten von f nach b_ell mittels backpropagation auszurechnen.
+
+Nun fahren wir mit der Berechnung vom Gradienten vom Loss nach W1 und W2 fort. Dies tun wir mit der Funktion gradW.
+Anschliessend returnen wir unsere Liste.
+
+Die Funktion GradLoss ist dafuer zustaendig ueber die Bilder in der Maske der Testdatensaetze zu iterieren und die Gradienten der Lossfunktion nach Theta aufzusummieren.
+Wir Iterieren nicht ueber die ganze Maske sondern nehmen uns immer 10 zufaellige Bilder aus der Maske um die Laufzeit zu verbessern.
+'''
+
 
 # Berechnet den Gradient von f(theta, x) abgeleitet nach dem Baies b^(l)
 def gradb(l, theta, gradTf, sigma, z):
