@@ -124,9 +124,14 @@ b3 = np.random.uniform(y, x, (3, 1))
 Theta = [W1, b1, W2, b2, W3, b3]
 
 
-
 """
-Aufgabe 2:Hier schreiben wir die FUnktionfoward und alles was wir dafuer brauchen, ebenso wie eine Funktion 
+Aufgabe 2: Hier schreiben wir die Funktion foward und alles was wir dafuer brauchen, ebenso wie eine Funktion, die 
+Matrizen vektorisiert. Zunaechst haben wir dazu zwei Funktionen geschrieben (functiondecider und elldecider), die 
+entscheiden welche der Aktivierungs - und Lossfunktionen genutzt werden sollen. Wir machen das eigentlich nur um uns zu 
+sparen die Funktionen mehrfach zu schreiben. Um forward zu berechnen haben wir eine Funktion geschrieben, die fuer 
+gegebenes theta, x und Aktivierungsfunktion die Vektoren z und a berechnet. Wichtig ist dabei, dass wir uns die Werte 
+nach Berechnung speichern um sie nicht mehrfach neu zu berechnen. Am Ende berechnen wir die Funktion forward fast wie 
+auf dem Aufgabenblatt, als einzigen Unterschied waehlen wir auf dem letzten Layer die Identitaet als Aktivierungsfunktion.
 """
 
 def vec(A):
@@ -149,8 +154,6 @@ def zunda(theta, x, sigma):
 def forward(theta, x, sigma):
     return np.matmul(theta[4], functionDecider(sigma, np.matmul(theta[2], functionDecider(sigma,np.matmul(theta[0], x) +theta[1])) + theta[3])) + theta[5]
 
-
-""" Hier schreiben wir die Funktionen hin die entscheiden welche FUnktionen ausgefuehrt werden"""
 
 def functionDecider(func, X):
     if func == "sp":
