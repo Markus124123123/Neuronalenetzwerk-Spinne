@@ -221,6 +221,11 @@ def gradTf(theta, x, y, sigma, ell):
 
     return L
 
+def entireLoss(theta,ell,sigma):
+    sum = 0
+    for i in range(len(maskI)):
+        sum += ellDecider(ell[1:], one_hot(maskT[i]), forward(theta, vec(maskI[i]), sigma))
+    return 1/(len(maskI)) *sum
 
 # Berechnet den Gradienten der Loss Funktion nach Theta abgeleitet
 # Aufgabe 4 die Funktion die die Gelernten Parameter updatet.
